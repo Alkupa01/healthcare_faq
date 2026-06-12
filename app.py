@@ -100,11 +100,12 @@ def main():
             # Tampilkan Hasil Utama (Peringkat 1)
             idx_utama = top_k_idx[0]
             skor_utama = skor_sim[idx_utama]
+            penyakit_utama = df.iloc[idx_utama]['disease']
             
             if skor_utama < CONFIDENCE_THRESHOLD:
                 st.error(f"⚠️ Maaf, sistem tidak menemukan dokumen medis yang relevan (Skor Kepercayaan: {skor_utama:.2%}).")
             else:
-                st.success(f"✅ Penyakit Terdeteksi: **{df.iloc[idx_utama]['disease'].upper()}** ({df.iloc[idx_utama]['topic'].upper()})")
+                st.success(f"✅ Penyakit Terdeteksi: **{penyakit_utama.upper()}** ({df.iloc[idx_utama]['topic'].upper()})")
                 
                 col_q, col_s = st.columns([3, 1])
                 with col_q:
@@ -117,13 +118,19 @@ def main():
                 
                 # Tampilkan Dokumen Alternatif (Top-K) di bawahnya secara melebar
                 if top_k > 1:
-                    with st.expander("🔍 Lihat Dokumen Relevan Lainnya (Top-K)"):
-                        for rank, idx in enumerate(top_k_idx[1:], start=2):
-                            st.markdown(f"**#{rank} - {df.iloc[idx]['disease'].title()} ({df.iloc[idx]['topic'].title()})** | Skor: {skor_sim[idx]:.2%}")
-                            st.markdown(f"> *{df.iloc[idx]['question']}*")
-                            st.markdown(f"Jawaban: {df.iloc[idx]['answer']}")
-                            st.divider()
-                            
+                    # Filter: Hanya ambil indeks alternatif yang penyakitnya SAMA dengan penyakit utama
+                    alternatif_relevan = [idx for idx in top_k_idx[1:] if df.iloc[idx]['disease'] == penyakit_utama]
+                    
+                    # Hanya buat expander jika masih ada dokumen alternatif setelah difilter
+                    if alternatif_relevan:
+                        with st.expander("🔍 Lihat Dokumen Relevan Lainnya (Top-K)"):
+                            # Gunakan enumerate dengan start=2 karena ini peringkat ke-2 dan seterusnya
+                            for rank, idx in enumerate(alternatif_relevan, start=2):
+                                st.markdown(f"**#{rank} - {df.iloc[idx]['disease'].title()} ({df.iloc[idx]['topic'].title()})** | Skor: {skor_sim[idx]:.2%}")
+                                st.markdown(f"> *{df.iloc[idx]['question']}*")
+                                st.markdown(f"Jawaban: {df.iloc[idx]['answer']}")
+                                st.divider()
+
     elif tombol_cari:
         st.warning("Kolom pertanyaan tidak boleh kosong!")
 
