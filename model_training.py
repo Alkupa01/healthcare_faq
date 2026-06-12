@@ -132,6 +132,7 @@ def main():
     # Bentuk pasangan latih dari potongan df_train_raw
     train_pairs = buat_training_pairs_mnrl(df_train_raw)
     
+    # Sudah mencakup tokenizer, transformer, dan pooling layer dalam satu kelas SentenceTransformer
     print(f"[INFO] Memuat pre-trained model: {MODEL_NAME}")
     model = SentenceTransformer(MODEL_NAME)
     
